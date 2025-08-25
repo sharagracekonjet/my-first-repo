@@ -1,0 +1,35 @@
+DEVOPS 
+
+devops = development + operations 
+. developers (who write code) 
+. operations (who deploy/manage system) 
+work together, instead of working in silos.
+
+real time example :  imagine developing a mobile app like swiggy.
+1. the developer writes code to add "track my order" feature.
+2. without devops: developer gives code to ops team --- they manually deploy --- bugs happen --- delay.
+3. with devops: code is automatically tested and deployed -- customers get update faster and safely.
+
+devops helps :
+1. release features faster.
+2. fix bugs quickly.
+3. automate repetitive tasks.
+
+
+PHASES                          DESCRIPTION
+
+PLAN                           Define what to build
+
+develpo                        write the code
+
+build                          compile code into deployable format
+
+test                           check for bugs automatically
+
+release                        approve the build for delopment
+
+deploy                         push app to servers or app store
+
+operate                        keep app running.fix any issues
+
+monitor                        analyze performance and feedback
