@@ -1,0 +1,461 @@
+<html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SimpleShop — Demo Online Store</title>
+  <style>
+    /* Basic reset */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html,body { height: 100%; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: #f7f8fb; color: #122; }
+
+    /* Layout */
+    .wrap { max-width: 1200px; margin: 28px auto; padding: 20px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom: 18px; }
+    .brand { display:flex; gap:12px; align-items:center; }
+    .logo { width:48px; height:48px; border-radius:10px; background: linear-gradient(135deg,#ff7a7a,#ffde7a); display:flex; align-items:center; justify-content:center; font-weight:700; color:#fff; font-size:18px; }
+    h1 { font-size:20px; letter-spacing:.2px; }
+    .controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+
+    /* Search & filters */
+    input[type="search"] { padding:10px 12px; border-radius:10px; border:1px solid #e0e6ef; width:260px; background:white; outline:none; }
+    select { padding:10px 12px; border-radius:10px; border:1px solid #e0e6ef; background:white; }
+
+    /* Product grid */
+    .grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap:16px; margin-top:18px; }
+    .card { background: linear-gradient(180deg,#fff,#fbfdff); border-radius:12px; padding:12px; box-shadow: 0 6px 18px rgba(18,34,70,.06); display:flex; flex-direction:column; gap:10px; }
+    .thumb { width:100%; height:150px; border-radius:10px; background-size:cover; background-position:center; }
+    .title { font-weight:600; font-size:15px; }
+    .price { color:#0a7a5f; font-weight:700; }
+    .meta { color:#637085; font-size:13px; }
+    .card .actions { margin-top:auto; display:flex; gap:8px; align-items:center; }
+
+    /* Buttons */
+    .btn { padding:9px 12px; border-radius:10px; cursor:pointer; border:none; background:#0a84ff; color:white; font-weight:600; box-shadow:0 6px 12px rgba(12,40,90,.06); }
+    .btn.secondary { background:transparent; border:1px solid #dbe7ff; color:#0a2b6f; }
+    .btn.ghost { background:transparent; color:#0a2b6f; border:1px dashed #d9e6ff; }
+
+    /* Cart panel */
+    .cart-btn { position:relative; }
+    .cart-count { position:absolute; top:-8px; right:-8px; background:#ff4d6d; color:white; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
+
+    /* Floating cart */
+    .cart-panel { position:fixed; right:20px; top:80px; width:360px; max-height:70vh; overflow:auto; background:white; border-radius:12px; box-shadow:0 18px 40px rgba(9,20,48,.12); padding:12px; display:none; z-index:60; }
+    .cart-item { display:flex; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid #f0f4ff; }
+    .cart-item:last-child { border-bottom: none; }
+    .cart-thumb { width:56px; height:56px; border-radius:8px; background-size:cover; background-position:center; }
+    .qty { display:flex; gap:6px; align-items:center; }
+    .small { font-size:13px; color:#51607b; }
+
+    /* Checkout modal */
+    .modal-backdrop { position:fixed; inset:0; background:rgba(6,10,20,.45); display:none; align-items:center; justify-content:center; z-index:80; }
+    .modal { width:680px; max-width:96%; background:white; border-radius:12px; padding:18px; box-shadow:0 30px 60px rgba(9,20,48,.25); }
+    .modal h2 { margin-bottom:10px; font-size:18px; }
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .field { display:flex; flex-direction:column; gap:6px; margin-bottom:8px; }
+    .field input, .field textarea { padding:10px; border-radius:8px; border:1px solid #e8eefb; outline:none; }
+
+    /* Footer */
+    footer { margin-top:24px; padding:18px 10px; text-align:center; color:#74839a; font-size:14px; }
+
+    /* Responsive */
+    @media (max-width:640px){
+      header { flex-direction:column; align-items:flex-start; gap:12px; }
+      .cart-panel { left:12px; right:12px; top:auto; bottom:20px; width:auto; max-width:440px; }
+    }
+
+    /* micro UI niceties */
+    .pill { display:inline-block; padding:4px 8px; border-radius:999px; background:#f0f8ff; color:#0a5fbd; font-weight:600; font-size:12px; }
+    .muted { color:#8895aa; font-size:13px; }
+    .empty { text-align:center; padding:34px 10px; color:#8c94a6; }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">SS</div>
+        <div>
+          <h1>SimpleShop</h1>
+          <div class="muted">Demo online store — front-end only</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <input id="search" type="search" placeholder="Search products, e.g. 'shoes'">
+        <select id="category">
+          <option value="all">All categories</option>
+        </select>
+        <button class="btn" id="clearFilters">Reset</button>
+
+        <div style="width:12px"></div>
+
+        <div class="cart-btn">
+          <button class="btn secondary" id="openCart">Cart 🛒</button>
+          <div id="cartCount" class="cart-count" style="display:none">0</div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div id="productGrid" class="grid" aria-live="polite"></div>
+    </main>
+
+    <footer>
+      Built with ❤ — this is a demo. To make it production-ready connect the checkout to a backend/payment gateway.
+    </footer>
+  </div>
+
+  <!-- Cart panel -->
+  <aside class="cart-panel" id="cartPanel" aria-hidden="true">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <strong>Your Cart</strong>
+      <div>
+        <button class="btn ghost" id="emptyCartBtn">Empty</button>
+        <button class="btn" id="checkoutBtn">Checkout</button>
+      </div>
+    </div>
+    <div id="cartItems" style="margin-top:12px"></div>
+    <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
+      <div class="muted small">Subtotal</div>
+      <div><strong id="cartTotal">₹0.00</strong></div>
+    </div>
+  </aside>
+
+  <!-- Checkout modal -->
+  <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true">
+    <div class="modal" role="document">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>Checkout</h2>
+        <button class="btn ghost" id="closeModal">Close</button>
+      </div>
+
+      <form id="checkoutForm">
+        <div class="grid-2" style="margin-top:12px;">
+          <div>
+            <div class="field">
+              <label>Name</label>
+              <input name="name" required placeholder="Your full name">
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input name="email" type="email" required placeholder="you@example.com">
+            </div>
+            <div class="field">
+              <label>Phone</label>
+              <input name="phone" required placeholder="+91 98765 43210">
+            </div>
+          </div>
+
+          <div>
+            <div class="field">
+              <label>Address</label>
+              <textarea name="address" rows="5" required placeholder="Street, city, postal code"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px; display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" class="btn secondary" id="backToCart">Back</button>
+          <button class="btn" type="submit">Place Order</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    /*********************************************************
+     * SimpleShop — front-end only demo
+     * - products array below is the "catalog"
+     * - cart persists to localStorage
+     *********************************************************/
+    const sampleProducts = [
+      { id: 'p1', title: 'Classic Leather Sneakers', price: 2499, category: 'Shoes', img: 'https://images.unsplash.com/photo-1600180758890-6866a1b9f4b2?auto=format&fit=crop&w=800&q=60' },
+      { id: 'p2', title: 'Minimalist Wristwatch', price: 3999, category: 'Accessories', img: 'https://images.unsplash.com/photo-1519744792095-2f2205e87b6f?auto=format&fit=crop&w=800&q=60' },
+      { id: 'p3', title: 'Cotton T-Shirt', price: 799, category: 'Clothing', img: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=800&q=60' },
+      { id: 'p4', title: 'Running Shoes — Lightweight', price: 3199, category: 'Shoes', img: 'https://images.unsplash.com/photo-1526403224745-3f8f6b8b8e8a?auto=format&fit=crop&w=800&q=60' },
+      { id: 'p5', title: 'Sunglasses — Aviator', price: 1299, category: 'Accessories', img: 'https://images.unsplash.com/photo-1503342452485-86f7f5f2c1b2?auto=format&fit=crop&w=800&q=60' },
+      { id: 'p6', title: 'Blue Denim Jeans', price: 1599, category: 'Clothing', img: 'https://images.unsplash.com/photo-1534278931828-9f0f0a9e5a3c?auto=format&fit=crop&w=800&q=60' },
+      { id: 'p7', title: 'Backpack — 20L', price: 2199, category: 'Bags', img: 'https://images.unsplash.com/photo-1520975867927-4d5b0c9b0b2d?auto=format&fit=crop&w=800&q=60' },
+      { id: 'p8', title: 'Casual Loafers', price: 1899, category: 'Shoes', img: 'https://images.unsplash.com/photo-1519741496141-7f9d27f6e63d?auto=format&fit=crop&w=800&q=60' }
+    ];
+
+    // --- App state & helpers ---
+    const LS_KEY = 'simpleshop_cart_v1';
+    let CART = {}; // { productId: qty }
+    const money = n => '₹' + Number(n).toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+    // --- DOM elements ---
+    const productGrid = document.getElementById('productGrid');
+    const searchInput = document.getElementById('search');
+    const categorySelect = document.getElementById('category');
+    const clearFilters = document.getElementById('clearFilters');
+    const cartCountEl = document.getElementById('cartCount');
+    const openCartBtn = document.getElementById('openCart');
+    const cartPanel = document.getElementById('cartPanel');
+    const cartItemsEl = document.getElementById('cartItems');
+    const cartTotalEl = document.getElementById('cartTotal');
+    const emptyCartBtn = document.getElementById('emptyCartBtn');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const closeModal = document.getElementById('closeModal');
+    const checkoutForm = document.getElementById('checkoutForm');
+    const backToCart = document.getElementById('backToCart');
+
+    // --- Initialization ---
+    function init(){
+      loadCart();
+      populateCategories();
+      renderProducts(sampleProducts);
+      attachEvents();
+      updateCartUI();
+    }
+
+    function populateCategories(){
+      const cats = Array.from(new Set(sampleProducts.map(p=>p.category)));
+      cats.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        categorySelect.appendChild(opt);
+      });
+    }
+
+    function attachEvents(){
+      searchInput.addEventListener('input', applyFilters);
+      categorySelect.addEventListener('change', applyFilters);
+      clearFilters.addEventListener('click', () => { searchInput.value=''; categorySelect.value='all'; applyFilters(); });
+      openCartBtn.addEventListener('click', toggleCart);
+      emptyCartBtn.addEventListener('click', clearCart);
+      checkoutBtn.addEventListener('click', openCheckout);
+      closeModal.addEventListener('click', closeCheckout);
+      backToCart.addEventListener('click', () => { modalBackdrop.style.display='none'; });
+      modalBackdrop.addEventListener('click', (e) => { if(e.target === modalBackdrop) closeCheckout(); });
+      checkoutForm.addEventListener('submit', handlePlaceOrder);
+    }
+
+    // --- Products rendering ---
+    function renderProducts(products){
+      productGrid.innerHTML = '';
+      if(!products.length){
+        productGrid.innerHTML = <div class="empty">No products found.</div>;
+        return;
+      }
+      products.forEach(p => {
+        const card = document.createElement('div'); card.className='card';
+        card.innerHTML = `
+          <div class="thumb" style="background-image:url('${p.img}')"></div>
+          <div class="title">${p.title}</div>
+          <div class="meta">${p.category}</div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div class="price">${money(p.price)}</div>
+            <div class="pill small">₹${(p.price/100).toFixed(0)} off</div>
+          </div>
+          <div class="actions">
+            <button class="btn add" data-id="${p.id}">Add to cart</button>
+            <button class="btn secondary view" data-id="${p.id}">View</button>
+          </div>
+        `;
+        productGrid.appendChild(card);
+      });
+
+      // bind product actions
+      Array.from(document.querySelectorAll('.add')).forEach(b => {
+        b.addEventListener('click', (e) => {
+          const id = e.currentTarget.dataset.id;
+          addToCart(id, 1);
+        });
+      });
+      Array.from(document.querySelectorAll('.view')).forEach(b => {
+        b.addEventListener('click', (e) => {
+          const id = e.currentTarget.dataset.id;
+          openQuickView(id);
+        });
+      });
+    }
+
+    function applyFilters(){
+      const q = searchInput.value.trim().toLowerCase();
+      const cat = categorySelect.value;
+      const filtered = sampleProducts.filter(p => {
+        const matchesQ = p.title.toLowerCase().includes(q) || p.category.toLowerCase().includes(q);
+        const matchesCat = (cat === 'all') ? true : p.category === cat;
+        return matchesQ && matchesCat;
+      });
+      renderProducts(filtered);
+    }
+
+    // --- Quick view (simple alert-style) ---
+    function openQuickView(id){
+      const p = sampleProducts.find(x=>x.id===id);
+      if(!p) return;
+      alert(${p.title}\n\nCategory: ${p.category}\nPrice: ${money(p.price)}\n\n(Use Add to cart to purchase));
+    }
+
+    // --- Cart logic ---
+    function loadCart(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        if(raw) CART = JSON.parse(raw) || {};
+      }catch(e){ CART = {}; }
+    }
+
+    function saveCart(){
+      localStorage.setItem(LS_KEY, JSON.stringify(CART));
+      updateCartUI();
+    }
+
+    function addToCart(productId, qty=1){
+      CART[productId] = (CART[productId] || 0) + qty;
+      if(CART[productId] <= 0) delete CART[productId];
+      saveCart();
+      // trigger a small visual cue
+      showCartCountPulse();
+    }
+
+    function setQty(productId, qty){
+      if(qty <= 0) delete CART[productId];
+      else CART[productId] = qty;
+      saveCart();
+    }
+
+    function removeFromCart(productId){
+      delete CART[productId];
+      saveCart();
+    }
+
+    function clearCart(){
+      if(!confirm('Empty cart?')) return;
+      CART = {};
+      saveCart();
+    }
+
+    function cartItems(){
+      return Object.entries(CART).map(([id, qty]) => {
+        const product = sampleProducts.find(p => p.id === id);
+        return { product, qty };
+      });
+    }
+
+    function cartTotals(){
+      const items = cartItems();
+      const subtotal = items.reduce((s, it) => s + (it.product.price * it.qty), 0);
+      return { items, subtotal };
+    }
+
+    function updateCartUI(){
+      const { items, subtotal } = cartTotals();
+      // count badge
+      const count = items.reduce((s,i) => s + i.qty, 0);
+      if(count > 0){
+        cartCountEl.style.display='flex';
+        cartCountEl.textContent = count;
+      } else {
+        cartCountEl.style.display='none';
+      }
+
+      // cart panel contents
+      cartItemsEl.innerHTML = '';
+      if(items.length === 0){
+        cartItemsEl.innerHTML = '<div class="empty">Your cart is empty.</div>';
+      } else {
+        items.forEach(it => {
+          const p = it.product;
+          const row = document.createElement('div'); row.className='cart-item';
+          row.innerHTML = `
+            <div class="cart-thumb" style="background-image:url('${p.img}')"></div>
+            <div style="flex:1;">
+              <div style="display:flex; justify-content:space-between; gap:8px; align-items:center;">
+                <div><strong>${p.title}</strong><div class="small muted">${p.category}</div></div>
+                <div class="muted small">${money(p.price * it.qty)}</div>
+              </div>
+              <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+                <div class="qty">
+                  <button class="btn ghost dec" data-id="${p.id}">-</button>
+                  <div class="pill">${it.qty}</div>
+                  <button class="btn ghost inc" data-id="${p.id}">+</button>
+                </div>
+                <button class="btn ghost" data-id="${p.id}">Remove</button>
+              </div>
+            </div>
+          `;
+          cartItemsEl.appendChild(row);
+        });
+
+        // bind inc/dec/remove
+        Array.from(cartItemsEl.querySelectorAll('.inc')).forEach(b => b.addEventListener('click', e => {
+          const id = e.currentTarget.dataset.id;
+          addToCart(id, 1);
+        }));
+        Array.from(cartItemsEl.querySelectorAll('.dec')).forEach(b => b.addEventListener('click', e => {
+          const id = e.currentTarget.dataset.id;
+          setQty(id, (CART[id] || 0) - 1);
+        }));
+        Array.from(cartItemsEl.querySelectorAll('button[data-id]')).forEach(b => {
+          if(b.classList.contains('inc') || b.classList.contains('dec')) return;
+          b.addEventListener('click', e => {
+            const id = e.currentTarget.dataset.id;
+            removeFromCart(id);
+          });
+        });
+      }
+
+      cartTotalEl.textContent = money(subtotal);
+    }
+
+    function toggleCart(){
+      const isOpen = cartPanel.style.display === 'block';
+      cartPanel.style.display = isOpen ? 'none' : 'block';
+      cartPanel.setAttribute('aria-hidden', isOpen ? 'true' : 'false');
+      updateCartUI();
+    }
+
+    function showCartCountPulse(){
+      cartCountEl.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.35)' }, { transform: 'scale(1)' }], { duration: 350, easing: 'ease-out' });
+    }
+
+    // --- Checkout ---
+    function openCheckout(){
+      const { items } = cartTotals();
+      if(items.length === 0){ alert('Your cart is empty. Add items first.'); return; }
+      modalBackdrop.style.display = 'flex';
+    }
+    function closeCheckout(){
+      modalBackdrop.style.display = 'none';
+    }
+
+    function handlePlaceOrder(e){
+      e.preventDefault();
+      const form = new FormData(checkoutForm);
+      const order = {
+        customer: {
+          name: form.get('name'),
+          email: form.get('email'),
+          phone: form.get('phone'),
+          address: form.get('address'),
+        },
+        items: cartItems(),
+        totals: cartTotals(),
+        createdAt: new Date().toISOString(),
+        id: 'ord_' + Math.random().toString(36).slice(2,9)
+      };
+      // For demo: store order in localStorage 'orders' array.
+      const orders = JSON.parse(localStorage.getItem('simpleshop_orders_v1') || '[]');
+      orders.push(order);
+      localStorage.setItem('simpleshop_orders_v1', JSON.stringify(orders));
+
+      // Clear cart and close modal
+      CART = {};
+      saveCart();
+      modalBackdrop.style.display = 'none';
+      alert('Order placed! Order id: ' + order.id + '\\n(Stored locally in your browser for demo.)');
+      checkoutForm.reset();
+    }
+
+    // --- start app ---
+    init();
+  </script>
+</body>
+</html>
